@@ -1,0 +1,16 @@
+[Unit]
+Description=Zoare Discord Bot Service
+After=network.target
+
+[Service]
+Type=simple
+User=kadiroski
+WorkingDirectory=/home/kadiroski/Desktop/DiscortBot
+ExecStart=/usr/bin/node index.js
+Restart=always
+RestartSec=10
+# Environment variables are loaded from the .env file by the app logic
+# but systemd restart is robust.
+
+[Install]
+WantedBy=multi-user.target

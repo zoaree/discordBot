@@ -259,6 +259,33 @@ async function handleHelp(message) {
                 inline: false
             },
             {
+                name: `🎮 __OYUNLAR__`,
+                value: '```yaml\n' +
+                    '!rulet @kurban : Rus Ruleti (Kaybeden atılır!)\n' +
+                    '!sik           : Rulet tetiğini çeker\n' +
+                    '!bilmece       : Zamana karşı yarışma\n' +
+                    '```',
+                inline: false
+            },
+            {
+                name: `🎭 __EĞLENCE & AI__`,
+                value: '```yaml\n' +
+                    '!roast @kisi   : Kişiye laf sokar (AI)\n' +
+                    '!öv @kisi      : Kişiyi över (AI)\n' +
+                    '!ship @1 @2    : Aşk uyumu ölçer\n' +
+                    '!film <tür>    : Film önerisi al\n' +
+                    '!tod           : Doğruluk mu Cesaret mi?\n' +
+                    '```',
+                inline: false
+            },
+            {
+                name: `🔞 __NSFW (GIF)__`,
+                value: '```yaml\n' +
+                    '!nsfw <kategori>: ass, boobs, couple, feet...\n' +
+                    '```',
+                inline: false
+            },
+            {
                 name: `${config.emojis.queue} __BİLGİ KOMUTLARI__`,
                 value: '```yaml\n' +
                     '!queue         : Şarkı kuyruğunu gösterir\n' +
