@@ -29,7 +29,10 @@ function getQueue(guildId) {
             voiceChannel: null,
             playing: false,
             volume: 100,
-            loop: false
+            playing: false,
+            volume: 100,
+            loop: false,
+            idleTimer: null
         });
     }
     return queues.get(guildId);
@@ -150,10 +153,16 @@ async function playSong(guildId, song) {
             const embed = new EmbedBuilder()
                 .setColor(config.colors.warning)
                 .setDescription(`${config.emojis.music} Kuyruk bitti!`);
-            queue.textChannel.send({ embeds: [embed] });
+            queue.textChannel.send({ embeds: [embed] }).catch(() => { });
         }
-        deleteQueue(guildId);
+        // Şarkı yoksa hemen silme, timer başlat (Idle eventi halledecek)
         return;
+    }
+
+    // Yeni şarkı geldi, varsa idle timer'ı iptal et
+    if (queue.idleTimer) {
+        clearTimeout(queue.idleTimer);
+        queue.idleTimer = null;
     }
 
     try {
@@ -309,6 +318,22 @@ function setupPlayerEvents(guildId) {
                     .setColor(config.colors.warning)
                     .setDescription(`${config.emojis.music} **Kuyruk bitti!**\n\`!play\` veya \`!mix\` ile yeni şarkı ekle.`);
                 queue.textChannel.send({ embeds: [embed] }).catch(() => { });
+
+                // 2 Dakika (120000ms) Idle Timer başlat
+                if (queue.idleTimer) clearTimeout(queue.idleTimer);
+
+                queue.idleTimer = setTimeout(() => {
+                    const currentQ = queues.get(guildId);
+                    if (currentQ && currentQ.connection) {
+                        if (currentQ.textChannel) {
+                            const disconnectEmbed = new EmbedBuilder()
+                                .setColor(config.colors.error)
+                                .setDescription('💤 **2 dakikadır işlem yapılmadığı için ayrılıyorum.**');
+                            currentQ.textChannel.send({ embeds: [disconnectEmbed] }).catch(() => { });
+                        }
+                        deleteQueue(guildId);
+                    }
+                }, 120000);
             }
         }
     });
