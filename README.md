@@ -54,10 +54,12 @@ Sohbet sırasında anlık tepki vermek için kullanılır. Listede **olmayan** b
 *   `!ship @1 @2` : İki kişi arasındaki aşk uyumunu yorumlar.
 
 ### 5. 🔞 NSFW (Yetişkin İçerik)
-Sadece NSFW kanallarında çalışır. Akıllı arama sistemi vardır.
-*   `!nsfw <kelime>` : İstediğini ara. *(Örnek: `!nsfw lesbian kiss` veya `!nsfw anal`)*
-*   **Özellik:** Sadece kelimeye bakmaz, cümleyi anlayıp en uygun kategoriyi (GIF) getirir.
-*   **Kategoriler:** `ass`, `boobs`, `pussy`, `anal`, `couple`...
+Sadece NSFW kanallarında çalışır. **Hibrit Sistem (Nekobot + Reddit)** kullanır.
+*   `!nsfw <kelime>` : İstediğini ara. *(Örnek: `!nsfw lesbian`, `!nsfw blowjob`, `!nsfw feet`)*
+*   **Gif Öncelikli:** Bot her zaman **gerçek GIF** (.gif/.mp4) bulmaya çalışır. Video linki atmaz, direkt oynatır.
+*   **Derin Karıştırma:** Her seferinde farklı kaynaklardan (Hot, New, Top) içerik çeker. Asla aynı şeyi görmezsin.
+*   **Kategoriler:** `ass`, `boobs`, `pussy`, `anal`, `blowjob`, `thighs`, `feet`, `couple`, `gonewild`...
+*   **Akıllı Fallback:** Nekobot çalışmazsa saniyesinde Reddit arşivini tarar ve sonucu getirir.
 
 ### 6. 🎮 Oyunlar
 *   `!rulet @kisi` : Rus Ruleti! 1/6 ihtimalle kişi sunucudan atılır (Kick).

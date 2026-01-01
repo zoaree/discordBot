@@ -988,14 +988,26 @@ async function handleNSFW(message, args) {
             .setColor('#ff0066')
             .setTitle(image.title)
             .setURL(image.postLink)
-            .setImage(image.url)
             .setFooter({ text: `Resource: ${image.author}` });
 
         // Eğer bir durum mesajı varsa (Random fallback vs)
-        let contentStr = null;
-        if (image.statusBox) {
-            contentStr = image.statusBox;
+        let contentStr = image.statusBox ? `${image.statusBox}\n` : '';
+
+        // VIDEO/REDGIFS KONTROLÜ
+        // Video linklerini embed içine değil, mesaja direkt yazmalıyız ki oynatıcı çıksın.
+        const isVideo = image.url.includes('redgifs') || image.url.includes('.mp4') || image.url.includes('v.redd.it');
+
+        if (isVideo) {
+            // Videoyu mesaja ekle
+            contentStr += `\n${image.url}`;
+        } else {
+            // Resim/GIF ise embed'e koy
+            embed.setImage(image.url);
         }
+
+        // Eğer video ise embed göndermeyelim (ya da minimal gönderelim), 
+        // çünkü video zaten kocaman yer kaplayacak.
+        // Ama başlık/author bilgisi için embed kalsın, sadece image olmasın.
 
         await loadingMsg.edit({ content: contentStr, embeds: [embed] });
 
