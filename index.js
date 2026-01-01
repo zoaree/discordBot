@@ -897,6 +897,13 @@ async function handleLyrics(message) {
         // AI'dan şarkı sözlerini al
         const lyrics = await ai.getLyrics(song.author, song.title);
 
+        if (lyrics === 'LIMIT_EXCEEDED') {
+            const embed = new EmbedBuilder()
+                .setColor(config.colors.error)
+                .setDescription(`${config.emojis.error} **Günlük AI Kotası Doldu!**\nGoogle Gemini 2.5 servisi şu an yanıt vermiyor (429 Too Many Requests).\nLütfen daha sonra tekrar dene.`);
+            return loadingMsg.edit({ embeds: [embed] });
+        }
+
         if (lyrics && !lyrics.includes('bulamadım')) {
             // Sözler çok uzunsa böl
             const maxLength = 4000;
@@ -911,7 +918,7 @@ async function handleLyrics(message) {
                 .setTitle(song.title)
                 .setDescription(lyricsText)
                 .setThumbnail(song.thumbnail)
-                .setFooter({ text: `${song.author} • AI tarafından getirildi` })
+                .setFooter({ text: `${song.author} • Gemini 2.5 Flash tarafından getirildi` })
                 .setTimestamp();
 
             await loadingMsg.edit({ embeds: [embed] });

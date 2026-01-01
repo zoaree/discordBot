@@ -4,8 +4,8 @@ const ai = require('./utils/ai');
 async function test() {
     console.log('Testing Lyrics Fetch...');
     try {
-        const artist = "Orhan Gencebay";
-        const title = "Batsın Bu Dünya";
+        const artist = "Sezen Aksu";
+        const title = "Masum Değiliz (Official Video)";
         console.log(`Searching for: ${artist} - ${title}`);
 
         const result = await ai.getLyrics(artist, title);

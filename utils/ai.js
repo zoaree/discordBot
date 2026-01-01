@@ -153,13 +153,11 @@ GÖREV: Bulduğun şarkı sözlerini eksiksiz aşağıya yaz.
         const response = await queueRequest(prompt);
         const text = response.text();
 
-        if (text.length < 20 || text.includes('BULUNAMADI')) {
-            console.log('[DEBUG] Text too short or has BULUNAMADI:', text);
-            return null;
-        }
+        if (text.length < 20 || text.includes('BULUNAMADI')) return null;
         return text;
     } catch (error) {
-        console.error('[DEBUG] getLyrics Exception:', error);
+        if (error.message && error.message.includes('429')) return 'LIMIT_EXCEEDED';
+        console.error('AI hatası:', error);
         return null;
     }
 }
