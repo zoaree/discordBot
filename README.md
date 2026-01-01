@@ -54,10 +54,26 @@ npm install
 FFmpeg kurulu değilse: `sudo apt install ffmpeg` (Linux) veya sitesinden indirin (Windows).
 
 #### 3. Yapılandırma
-`.env` dosyasını oluşturun ve bilgilerinizi girin:
+1. `.env.example` dosyasının adını `.env` olarak değiştirin.
+2. Aşağıdaki adımları takiperek anahtarlarınızı alın ve dosyaya yapıştırın.
+
+##### 🔑 Discord Token Nasıl Alınır?
+1. [Discord Developer Portal](https://discord.com/developers/applications)'a gidin.
+2. "New Application" butonuna basın ve bir isim verin.
+3. Soldaki menüden **Bot** sekmesine gelin.
+4. "Reset Token" diyerek tokenınızı kopyalayın.
+5. **ÖNEMLİ:** "Message Content Intent", "Server Members Intent" ve "Presence Intent" seçeneklerini açmayı unutmayın!
+
+##### 🔑 Gemini API Key Nasıl Alınır?
+1. [Google AI Studio](https://aistudio.google.com/app/apikey)'ya gidin.
+2. Google hesabınızla giriş yapın.
+3. "Create API Key" butonuna basın.
+4. Oluşturulan anahtarı kopyalayın.
+
+Dosya içeriği şöyle olmalı:
 ```env
-DISCORD_TOKEN=senin_discord_tokenin
-GEMINI_API_KEY=senin_gemini_api_keyin
+DISCORD_TOKEN=MTE5... (Tokenin tamamı)
+GEMINI_API_KEY=AIza... (API Keyin tamamı)
 ```
 
 #### 4. Başlatma
@@ -108,11 +124,18 @@ npm install
 ```
 
 #### 2. Configuration
-Create a `.env` file:
-```env
-DISCORD_TOKEN=your_token_here
-GEMINI_API_KEY=your_api_key_here
-```
+1. Rename `.env.example` to `.env`.
+2. Get your keys and fill the file:
+
+##### 🔑 How to Get Discord Token?
+1. Go to [Discord Developer Portal](https://discord.com/developers/applications).
+2. Create "New Application".
+3. Go to **Bot** tab and click "Reset Token".
+4. Enable **Message Content Intent**, **Server Members Intent**, and **Presence Intent**.
+
+##### 🔑 How to Get Gemini API Key?
+1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey).
+2. Click "Create API Key".
 
 #### 3. Run
 ```bash
