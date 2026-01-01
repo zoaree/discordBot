@@ -140,7 +140,7 @@ Kısa ve samimi cevaplar ver. Emoji kullan.
  */
 async function getLyrics(artist, title) {
     const cleanArtist = artist.replace(/\s*-\s*Topic$/, '').trim();
-    const cleanTitle = title.replace(/\(Official.*?\)/gi, '').trim();
+    const cleanTitle = title.replace(/\(.*?\)/gi, '').trim(); // Parantez içindeki her şeyi temizle (Yıl, Official vs)
 
     try {
         const prompt = `Google Search Tool kullanarak şu şarkının sözlerini bul ve getir: "${cleanArtist} - ${cleanTitle}"
@@ -153,7 +153,10 @@ GÖREV: Bulduğun şarkı sözlerini eksiksiz aşağıya yaz.
         const response = await queueRequest(prompt);
         const text = response.text();
 
-        if (text.length < 20 || text.includes('BULUNAMADI')) return null;
+        if (text.length < 20 || text.includes('BULUNAMADI')) {
+            console.log(`[AI] Söz bulunamadı veya kısa: ${text.substring(0, 50)}...`);
+            return null;
+        }
         return text;
     } catch (error) {
         if (error.message && error.message.includes('429')) return 'LIMIT_EXCEEDED';
