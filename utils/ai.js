@@ -205,5 +205,20 @@ module.exports = {
             score: score,
             comment: response.text()
         };
+    },
+
+    generateSubtleHint: async (answer) => {
+        const prompt = `GÖREV: "${answer}" kelimesi için bir bilmece ipucu ver.
+KURALLAR:
+1. Asla cevabı söyleme.
+2. Çok açık verme, zor olsun.
+3. Dolaylı yoldan, özelliklerinden bahset.
+4. Tek cümle olsun.`;
+        try {
+            const response = await queueRequest(prompt);
+            return response.text();
+        } catch (e) {
+            return 'İpucu oluşturulamadı...';
+        }
     }
 };

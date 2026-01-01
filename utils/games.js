@@ -112,6 +112,10 @@ async function handleTrigger(message) {
 }
 
 
+const ai = require('./ai');
+
+// ... (Other code remains same) ...
+
 // === BILMECE ===
 async function startRiddle(message) {
     if (riddleSessions.has(message.channel.id)) {
@@ -123,7 +127,7 @@ async function startRiddle(message) {
 
     const embed = new EmbedBuilder()
         .setTitle('🧠 Bilmece Zamanı!')
-        .setDescription(`**Soru:** ${riddle.q}\n\n*💡 İpucu: ${riddle.h}*\n\n⏳ **Süre:** 60 Saniye!`)
+        .setDescription(`**Soru:** ${riddle.q}\n\n⏳ **Süre:** 60 Saniye!\n*3 yanlış cevaptan sonra ipucu gelir!*`)
         .setColor('#ffff00')
         .setFooter({ text: 'Cevabı sohbete yazın!' });
 
@@ -145,7 +149,10 @@ async function startRiddle(message) {
     riddleSessions.set(message.channel.id, {
         question: riddle.q,
         answer: riddle.a,
+        staticHint: riddle.h,
         strikes: {},
+        globalWrongs: 0,
+        hintRevealed: false,
         active: true,
         startTime: Date.now(),
         timer: timeoutId
@@ -174,6 +181,21 @@ async function checkRiddle(message) {
     }
 
     // Yanlış cevap ve timeout sistemi
+    session.globalWrongs++;
+
+    // 3. Yanlışta Global İpucu Ver
+    if (session.globalWrongs === 3 && !session.hintRevealed) {
+        session.hintRevealed = true;
+        // AI'dan ipucu al veya statik olanı kullan
+        let hint = session.staticHint;
+        try {
+            const aiHint = await ai.generateSubtleHint(session.answer[0]);
+            if (aiHint && aiHint.length > 5) hint = aiHint;
+        } catch (e) { }
+
+        message.channel.send(`💡 **İpucu Geldi:** ${hint}`);
+    }
+
     if (!session.strikes[message.author.id]) session.strikes[message.author.id] = 0;
     session.strikes[message.author.id]++;
 
@@ -186,13 +208,13 @@ async function checkRiddle(message) {
 
                 const member = await message.guild.members.fetch(message.author.id);
                 if (member.moderatable) {
-                    await member.timeout(60 * 1000, 'Bilmece: 3 Yanlış Cevap'); // 1 dakika
-                    message.reply(`🚫 **${message.author}** 3 yanlış yaptın! 1 dakika susturuldun. Şansına küs.`);
+                    await member.timeout(30 * 1000, 'Bilmece: 3 Yanlış Cevap'); // 30 saniye
+                    message.reply(`🚫 **${message.author}** 3 yanlış yaptın! 30 saniye susturuldun. Biraz düşün koçum.`);
                 } else {
                     message.reply(`🚫 **${message.author}** 3 yanlış yaptın!`);
                 }
             }
-            session.strikes[message.author.id] = 0;
+            session.strikes[message.author.id] = 0; // Sayacı sıfırla ki döngüye girmesin
         } catch (e) {
             console.error('Timeout hatası:', e);
         }
