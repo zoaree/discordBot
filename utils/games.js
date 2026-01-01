@@ -79,18 +79,21 @@ async function handleTrigger(message) {
 
         message.channel.send({ embeds: [embed] });
 
-        // Kick İşlemi
+        // Voice Disconnect İşlemi (Kick yerine)
         try {
             const member = await message.guild.members.fetch(message.author.id);
-            if (member.kickable) {
-                await member.kick('Rus Ruleti Kaybedeni');
-                message.channel.send(`🧹 ${message.author} sunucudan temizlendi.`);
+
+            if (member.voice.channel) {
+                // Kullanıcı ses kanalındaysa at
+                await member.voice.disconnect('Rus Ruleti Kaybedeni');
+                message.channel.send(`🧹 **${message.author}** kafasına sıktı ve ses kanalından uçuruldu!`);
             } else {
-                message.channel.send(`🛡️ ${message.author} yetkili olduğu için atılamadı! (Torpilli)`);
+                // Seste değilse sadece mesaj at
+                message.channel.send(`💀 **${message.author}** zaten seste değildi, ama manevi olarak aramızdan ayrıldı.`);
             }
         } catch (e) {
-            console.error('Kick Hatası:', e);
-            message.channel.send('⚠️ Bir hata oldu, kick atılamadı.');
+            console.error('Disconnect Hatası:', e);
+            message.channel.send('⚠️ Bir hata oldu, ses kanalından atılamadı.');
         }
 
         rouletteSessions.delete(message.channel.id);
