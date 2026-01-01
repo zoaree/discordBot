@@ -7,36 +7,57 @@ const CATEGORIES = ['ass', 'boobs', 'pussy', 'thighs', 'feet', 'anal', 'blowjob'
  * Belirtilen kategoriden rastgele bir gerçek GIF/Resim çeker
  * Öncelik her zaman GIF'tir.
  */
-async function getNSFWImage(category = 'random') {
+async function getNSFWImage(query = '') {
     try {
-        if (!CATEGORIES.includes(category)) category = 'random';
+        const lowerQuery = query.toLowerCase();
+        let targetCategory = 'random';
+        let foundMatch = false;
 
-        // Kategori Eşleştirme (Nekobot Types)
+        // Kategori Eşleştirme (Nekobot Types) - Basit bir NLP benzeri arama
         const typeMap = {
+            'ass': ['ass', 'pop', 'kalça', 'göt', 'booty', 'butt'],
+            'boobs': ['boobs', 'tits', 'meme', 'göğüs', 'breast'],
+            'pussy': ['pussy', 'am', 'vicik', 'vagina'],
+            'thighs': ['thighs', 'bacak', 'kalın'],
+            'feet': ['feet', 'ayak', 'foot'],
+            'anal': ['anal', 'göt', 'arkadan'],
+            'blowjob': ['blowjob', 'oral', 'sakso'],
+            'gonewild': ['gonewild', 'çıplak', 'nude'],
+            'couple': ['couple', 'sevgili', 'ikili', 'sex', 'fuck', 'sikiş', 'lesbian', 'lezyon', 'gay'] // Kullanıcı "gay with lesbian" dediği için lesbian'ı buraya map'liyoruz
+        };
+
+        // Sorgu içindeki kelimelere bakarak kategori bulmaya çalış
+        if (query) {
+            for (const [cat, keywords] of Object.entries(typeMap)) {
+                if (keywords.some(k => lowerQuery.includes(k))) {
+                    targetCategory = cat;
+                    foundMatch = true;
+                    break;
+                }
+            }
+        }
+
+        // API için alt türleri belirle
+        const apiTypeMap = {
             'ass': ['ass'],
             'boobs': ['boobs'],
             'pussy': ['pussy'],
             'thighs': ['thighs'],
-            'feet': ['feet'], // Nekobot feet desteği sınırlı olabilir
+            'feet': ['feet'],
             'anal': ['anal'],
-            'blowjob': ['blowjob'], // Nekobot'ta varsa
+            'blowjob': ['blowjob'],
             'gonewild': ['gonewild'],
-            'couple': ['anal', 'gonewild', 'pussy'], // Couple için karışık (Anal/Gonewild genelde couple içerir)
-            'random': ['ass', 'boobs', 'pussy', 'thighs', 'anal', 'gonewild', '4k'],
-            'gif': ['ass', 'boobs', 'pussy', 'anal', 'gonewild']
+            'couple': ['anal', 'gonewild', 'pussy'], // Couple tam yoksa mix yap
+            'random': ['ass', 'boobs', 'pussy', 'thighs', 'anal', 'gonewild', '4k']
         };
 
-        // Kategoriye uygun tipleri al
-        let possibleTypes = typeMap[category] || typeMap['random'];
+        let possibleTypes = apiTypeMap[targetCategory] || apiTypeMap['random'];
 
         // GIF ZORLAMA DÖNGÜSÜ (Max 15 deneme)
         let lastResult = null;
 
         for (let i = 0; i < 15; i++) {
-            // Her denemede rastgele bir alt tür seç
             const searchType = possibleTypes[Math.floor(Math.random() * possibleTypes.length)];
-
-            // API İsteği
             const searchUrl = `https://nekobot.xyz/api/image?type=${searchType}`;
 
             try {
@@ -48,27 +69,33 @@ async function getNSFWImage(category = 'random') {
                     const url = data.message;
                     const isGif = url.match(/\.(gif|mp4|webm)$/i);
 
-                    const result = {
+                    // Eğer GIF değilse geç (Kullanıcı kesinlikle GIF istiyor)
+                    if (!isGif) continue;
+
+                    let titleText = `🔥 REAL ${searchType.toUpperCase()} (GIF)`;
+                    let statusText = null;
+
+                    // Eğer kullanıcı bir şey aradı ama biz bulamayıp random verdiysek
+                    if (query && !foundMatch) {
+                        statusText = `⚠️ **"${query}"** için GIF bulamadım, sana rastgele ateşli bir şey getirdim!`;
+                    } else if (foundMatch) {
+                        statusText = `✅ **"${query}"** isteğine uygun içerik bulundu!`;
+                    }
+
+                    return {
                         url: url,
-                        title: `🔥 REAL ${category.toUpperCase()} ${isGif ? '(GIF)' : ''}`,
+                        title: titleText,
                         author: 'Nekobot API',
-                        postLink: url
+                        postLink: url,
+                        statusBox: statusText
                     };
-
-                    // Eğer GIF bulduysak DİREKT döndür (Hedefimiz bu!)
-                    if (isGif) return result;
-
-                    // GIF değilse, bunu yedekte tut (eğer 15 denemede hiç gif bulamazsak bunu atarız)
-                    lastResult = result;
                 }
             } catch (e) {
-                // Hata olursa devam et
+                // Hata
             }
         }
 
-        // Eğer döngü bitti ve hiç GIF bulamadıysak, elimizdeki son resmi ver
-        // Hiçbir şey bulamadıysak null döner
-        return lastResult;
+        return null;
 
     } catch (error) {
         console.error('NSFW API Hatası:', error);

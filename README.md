@@ -1,147 +1,109 @@
-# Zoare Music & Fun Discord Bot
+# 🎵 Zoare - Gelişmiş Discord Müzik & Eğlence Botu
 
-![Zoare Banner](https://media.discordapp.net/attachments/100000000000000000/100000000000000000/banner.png?width=1000)
-
-**[TR] Türkçe** | **[EN] English**
+Zoare, **Yapay Zeka (AI)** destekli, sonsuz **Radyo** özellikli ve anlık tepkiler verebilen bir **Soundboard** sistemine sahip gelişmiş bir Discord botudur.
 
 ---
 
-## 🇹🇷 Türkçe - Proje Hakkında
+## 🚀 Öne Çıkan Özellikler
 
-**Zoare Bot**, Discord sunucularınızda müzik dinlemenizi, oyun oynamanızı ve yapay zeka destekli eğlenceli etkileşimlerde bulunmanızı sağlayan gelişmiş bir bottur. @zoare5 tarafından geliştirilmiştir.
-
-### ✨ Özellikler
-
-#### 🎵 Müzik
-*   **Yüksek Kalite Çalma:** YouTube üzerinden kesintisiz müzik.
-*   **Akıllı Sıra:** Şarkıları sıraya ekleyin, karıştırın veya döngüye alın.
-*   **AI Mix:** `!mix ruh_hali` ile yapay zeka size özel çalma listesi oluştursun.
-*   **Şarkı Sözleri:** `!söz` komutu ile çalan şarkının sözlerini anında görün.
-
-#### 🎮 Oyunlar & Eğlence
-*   **Rus Ruleti (`!rulet`):** Arkadaşlarınızla ölümcül bir düelloya girin. Kaybeden sunucudan atılır!
-*   **Bilmece (`!bilmece`):** Zamana karşı yarışın. Bilemezseniz susturulursunuz.
-*   **Yapay Zeka Eğlencesi:**
-    *   `!roast @kullanıcı`: Arkadaşınıza efsane laf sokun.
-    *   `!ship @ali @ayşe`: Aşk uyumunu ölçün.
-    *   `!film`: Film tavsiyesi isteyin.
-    *   `!tod`: Doğruluk mu Cesaret mi oynayın.
-
-#### 🔞 NSFW (Ayarlı Kanallarda)
-*   **GIF Odaklı:** `!nsfw` komutu ile yüksek kaliteli içeriklere ulaşın. Waifu ve Nekobot API destekli.
+*   **🎙️ Sonsuz Radyo:** 10 farklı kategoride (Arabesk, Pop, Rock, Rap...) binlerce şarkılık arşiv. Asla durmaz!
+*   **🤖 AI DJ:** "Aşk acısı çekiyorum" de, yapay zeka sana özel 30 şarkılık playlist hazırlasın.
+*   **🎤 Soundboard:** `!s bruh` yaz, muhabbetin ortasına ses efekti at. `!s de` ile botu konuştur.
+*   **🎮 Oyunlar:** Rus Ruleti (`!rulet`) ile kaybedeni sunucudan at, Bilmece çöz.
+*   **🔞 NSFW:** Yapay zeka destekli akıllı arama ile gerçek GIF'ler bulur.
 
 ---
 
-### 🚀 Kurulum ve Kullanım
+## 📖 KULLANIM KILAVUZU (Komutlar)
 
-#### Gereksinimler
-*   Node.js (v16 veya üzeri)
-*   FFmpeg (Müzik çalmak için)
-*   Discord Bot Token
-*   Google Gemini API Key
+Botun varsayılan öneki (prefix): **`!`**
 
-#### 1. İndirme
-Projeyi bilgisayarınıza klonlayın:
-```bash
-git clone https://github.com/zoaree/discordBot.git
-cd discordBot
-```
+### 1. 📻 Sonsuz Radyo Modu (`!radyo`)
+Bot kendi devasa arşivinden rastgele şarkılar seçer ve çalar. Şarkı bitince otomatik yenisi gelir.
+*   `!radyo arabesk` : En damar şarkılar (Müslüm, Ferdi...)
+*   `!radyo pop`     : Türkçe Pop Hitler (Tarkan, Hande...)
+*   `!radyo rock`    : Duman, Mor ve Ötesi...
+*   `!radyo rap`     : Ceza, Sagopa, Ezhel...
+*   **Diğerleri:** `ask`, `huzun`, `akustik`, `nostalji`, `yabanci`, `party`
+*   `!radyo karisik` : Tüm arşivden rastgele çalar. Her telden!
 
-#### 2. Kütüphaneleri Yükleme
-```bash
-npm install
-```
-FFmpeg kurulu değilse: `sudo apt install ffmpeg` (Linux) veya sitesinden indirin (Windows).
+### 2. 🎤 Soundboard & Konuşma (`!s`)
+Sohbet sırasında anlık tepki vermek için kullanılır. Listede **olmayan** bir şey yazarsan, bot YouTube'da **en çok izlenen** kısa videoyu bulup getirir (Dinamik Arama).
 
-#### 3. Yapılandırma
-1. `.env.example` dosyasının adını `.env` olarak değiştirin.
-2. Aşağıdaki adımları takiperek anahtarlarınızı alın ve dosyaya yapıştırın.
+*   `!s de <mesaj>` : Bot yazdığını Türkçe okur (TTS). *(Örnek: `!s de Naber müdür`)*
+*   `!s naber`   : Aykut Elmas "Naber müdür".
+*   `!s gora`    : Arif Işık "Bir cisim yaklaşıyor".
+*   `!s recep`   : Recep İvedik gülüşü.
+*   `!s <herhangi>` : Aklına geleni yaz, bot bulsun! *(Örnek: `!s osuruk`, `!s windows error`)*
+*   `!s list`    : Hazır sesleri gösterir.
 
-##### 🔑 Discord Token Nasıl Alınır?
-1. [Discord Developer Portal](https://discord.com/developers/applications)'a gidin.
-2. "New Application" butonuna basın ve bir isim verin.
-3. Soldaki menüden **Bot** sekmesine gelin.
-4. "Reset Token" diyerek tokenınızı kopyalayın.
-5. **ÖNEMLİ:** "Message Content Intent", "Server Members Intent" ve "Presence Intent" seçeneklerini açmayı unutmayın!
+### 3. 🎵 Müzik Komutları
+*   `!play <şarkı>` : Şarkı açar (YouTube).
+*   `!stop` : Botu durdurur ve kanaldan atar.
+*   `!skip` : Şarkıyı geçer.
+*   `!pause` / `!resume` : Durdur/Devam et.
+*   `!loop` : Döngüye alır (Aynı şarkıyı tekrar çalar).
+*   `!queue` : Sıradaki şarkıları gösterir.
+*   `!soz` : Çalan şarkının sözlerini bulur.
 
-##### 🔑 Gemini API Key Nasıl Alınır?
-1. [Google AI Studio](https://aistudio.google.com/app/apikey)'ya gidin.
-2. Google hesabınızla giriş yapın.
-3. "Create API Key" butonuna basın.
-4. Oluşturulan anahtarı kopyalayın.
+### 4. 🤖 Yapay Zeka (AI)
+*   `!mix <ruh hali>` : Ruh haline göre playlist yapar. *(Örnek: `!mix yağmurlu havada kahve keyfi`)*
+*   `!film <tür>` : Sana film önerir. *(Örnek: `!film korku`)
+*   `!roast @kisi` : Etiketlediğin kişiye yapay zeka ile laf sokar.
+*   `!öv @kisi` : Etiketlediğin kişiyi över.
+*   `!ship @1 @2` : İki kişi arasındaki aşk uyumunu yorumlar.
 
-Dosya içeriği şöyle olmalı:
+### 5. 🔞 NSFW (Yetişkin İçerik)
+Sadece NSFW kanallarında çalışır. Akıllı arama sistemi vardır.
+*   `!nsfw <kelime>` : İstediğini ara. *(Örnek: `!nsfw lesbian kiss` veya `!nsfw anal`)*
+*   **Özellik:** Sadece kelimeye bakmaz, cümleyi anlayıp en uygun kategoriyi (GIF) getirir.
+*   **Kategoriler:** `ass`, `boobs`, `pussy`, `anal`, `couple`...
+
+### 6. 🎮 Oyunlar
+*   `!rulet @kisi` : Rus Ruleti! 1/6 ihtimalle kişi sunucudan atılır (Kick).
+*   `!sik` : Rulet tetiğini çeker.
+*   `!bilmece` : Bot bir bilmece sorar, bilen kazanır.
+
+---
+
+## 🛠️ Kurulum (Admin İçin)
+
+Bu botu kendi bilgisayarında veya sunucunda barındırmak için:
+
+### Gereksinimler
+*   Node.js (v18 veya üstü)
+*   FFmpeg (Sistemde kurulu olmalı)
+*   Bir Discord Bot Tokeni
+*   Gemini API Key (Google AI Studio'dan ücretsiz alınır)
+
+### Adım 1: Dosyaları İndir
+Projeyi klasöre çıkartın.
+
+### Adım 2: Ayarları Yapın
+`.env.example` dosyasının adını `.env` yapın ve içini doldurun:
 ```env
-DISCORD_TOKEN=MTE5... (Tokenin tamamı)
-GEMINI_API_KEY=AIza... (API Keyin tamamı)
+DISCORD_TOKEN=senin_bot_tokenin
+GEMINI_API_KEY=senin_gemini_api_keyin
 ```
 
-#### 4. Başlatma
+### Adım 3: Yükle ve Başlat
+Terminali açın ve şu komutları girin:
 ```bash
-node index.js
-```
-
----
-
-## 🇺🇸 English - About The Project
-
-**Zoare Bot** is an advanced Discord bot developed by @zoare5 that brings music, games, and AI-powered interactions to your server.
-
-### ✨ Features
-
-#### 🎵 Music
-*   **High Quality Playback:** Seamless streaming from YouTube.
-*   **Smart Queue:** Loop, shuffle, and skip functionalities.
-*   **AI Mix:** Generate custom playlists based on mood with `!mix`.
-*   **Lyrics:** Fetch real-time lyrics with `!söz`.
-
-#### 🎮 Games & Fun
-*   **Russian Roulette (`!rulet`):** A deadly duel mechanism. Loser gets kicked!
-*   **Riddles (`!bilmece`):** Timed riddle games with timeout penalties.
-*   **AI Fun:**
-    *   `!roast`: Roast your friends.
-    *   `!ship`: Check love compatibility.
-    *   `!film`: Get movie recommendations.
-
-#### 🔞 NSFW (Restricted Channels)
-*   **GIF Focused:** High-quality NSFW content fetching powered by Waifu and Nekobot APIs.
-
----
-
-### 🚀 Installation & Usage
-
-#### Prerequisites
-*   Node.js (v16+)
-*   FFmpeg
-*   Discord Bot Token
-*   Google Gemini API Key
-
-#### 1. Setup
-```bash
-git clone https://github.com/zoaree/discordBot.git
-cd discordBot
+# Gerekli paketleri yükle
 npm install
-```
 
-#### 2. Configuration
-1. Rename `.env.example` to `.env`.
-2. Get your keys and fill the file:
-
-##### 🔑 How to Get Discord Token?
-1. Go to [Discord Developer Portal](https://discord.com/developers/applications).
-2. Create "New Application".
-3. Go to **Bot** tab and click "Reset Token".
-4. Enable **Message Content Intent**, **Server Members Intent**, and **Presence Intent**.
-
-##### 🔑 How to Get Gemini API Key?
-1. Go to [Google AI Studio](https://aistudio.google.com/app/apikey).
-2. Click "Create API Key".
-
-#### 3. Run
-```bash
+# Botu başlat
 node index.js
 ```
 
----
+### 🛑 7/24 Çalıştırma (Linux/Systemd)
+Eğer Linux kullanıyorsan ve botun hep açık kalmasını istiyorsan:
+1. `setup_service.sh` dosyasını çalıştır:
+   ```bash
+   chmod +x setup_service.sh
+   ./setup_service.sh
+   ```
+2. Bu işlem botu arka planda servis olarak başlatır.
 
-**Developed by @zoare5** | [GitHub Repository](https://github.com/zoaree/discordBot.git)
+---
+*Geliştirici: Kadiroski*

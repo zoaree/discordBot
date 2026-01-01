@@ -199,22 +199,22 @@ async function playSong(guildId, song) {
         queue.currentSong = song;
         queue.playing = true;
 
-        // Şarkı bilgisini gönder
-        const requester = song.requestedBy ? song.requestedBy : null;
-        const embed = new EmbedBuilder()
-            .setColor(config.colors.music)
-            .setAuthor({ name: '🎵 Şimdi Çalıyor', iconURL: requester?.displayAvatarURL?.() || null })
-            .setTitle(song.title)
-            .setURL(song.url)
-            .setDescription(`${config.emojis.microphone} **${song.author}**`)
-            .addFields(
-                { name: '⏱️ Süre', value: `\`${song.duration}\``, inline: true },
-                { name: `${config.emojis.headphones} İsteyen`, value: requester ? `<@${requester.id}>` : 'Bilinmiyor', inline: true }
-            )
-            .setThumbnail(song.thumbnail)
-            .setTimestamp();
+        // Şarkı bilgisini gönder (Soundboard ise gönderme)
+        if (!song.isSoundboard && queue.textChannel) {
+            const requester = song.requestedBy ? song.requestedBy : null;
+            const embed = new EmbedBuilder()
+                .setColor(config.colors.music)
+                .setAuthor({ name: '🎵 Şimdi Çalıyor', iconURL: requester?.displayAvatarURL?.() || null })
+                .setTitle(song.title)
+                .setURL(song.url)
+                .setDescription(`${config.emojis.microphone} **${song.author}**`)
+                .addFields(
+                    { name: '⏱️ Süre', value: `\`${song.duration}\``, inline: true },
+                    { name: `${config.emojis.headphones} İsteyen`, value: requester ? `<@${requester.id}>` : 'Bilinmiyor', inline: true }
+                )
+                .setThumbnail(song.thumbnail)
+                .setTimestamp();
 
-        if (queue.textChannel) {
             queue.textChannel.send({ embeds: [embed] });
         }
 
@@ -249,6 +249,8 @@ async function playSong(guildId, song) {
 function setupPlayerEvents(guildId) {
     const queue = getQueue(guildId);
 
+    const radioSongs = require('./radio_songs');
+
     queue.player.on(AudioPlayerStatus.Idle, async () => {
         // Loop modunda çalan şarkıyı kuyruğun sonuna ekle
         if (queue.loop && queue.currentSong) {
@@ -259,8 +261,45 @@ function setupPlayerEvents(guildId) {
         if (nextSong) {
             await playSong(guildId, nextSong);
         } else {
+            // === RADYO MODU KONTROLÜ ===
+            if (queue.radioCategory) {
+                try {
+                    // Kategori listesini al
+                    let songList = [];
+                    if (queue.radioCategory === 'karisik') {
+                        // Tüm kategorileri birleştir
+                        Object.values(radioSongs).forEach(list => songList.push(...list));
+                    } else if (radioSongs[queue.radioCategory]) {
+                        songList = radioSongs[queue.radioCategory];
+                    }
+
+                    if (songList.length > 0) {
+                        // Rastgele şarkı seç
+                        const randomSongName = songList[Math.floor(Math.random() * songList.length)];
+
+                        // Bilgi mesajı güncellemesi için text kanalı kontrolü
+                        // (Kullanıcıya spam yapmamak için sadece çalıyor embed'i playSong içinde gidiyor)
+
+                        // Şarkı bilgisini al
+                        const songInfo = await getSongInfo(randomSongName);
+                        // Radyo botu tarafından istenmiş gibi göster
+                        songInfo.requestedBy = {
+                            id: 'radio',
+                            username: 'Zoare Radyo',
+                            displayAvatarURL: () => 'https://cdn-icons-png.flaticon.com/512/3083/3083417.png'
+                        };
+
+                        await playSong(guildId, songInfo);
+                        return; // Fonksiyondan çık, bitti mesajı atma
+                    }
+                } catch (err) {
+                    console.error('Radyo oto-çalma hatası:', err);
+                }
+            }
+
             queue.playing = false;
             queue.currentSong = null;
+            queue.radioCategory = null; // Radyo bitti
 
             // Kuyruk bitti mesajı
             if (queue.textChannel) {
@@ -276,6 +315,10 @@ function setupPlayerEvents(guildId) {
 
     queue.player.on('error', (error) => {
         console.error('Player hatası:', error);
+        // Hata durumunda radyo devam etsin (bir sonrakine geçsin)
+        if (queue.radioCategory) {
+            queue.player.stop(); // Idle tetikler, döngüye girer
+        }
     });
 }
 

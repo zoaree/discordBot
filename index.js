@@ -123,7 +123,6 @@ client.on('messageCreate', async (message) => {
                 await handleStop(message);
                 break;
             case 'skip':
-            case 's':
             case 'atla':
             case 'next':
                 await handleSkip(message);
@@ -182,6 +181,18 @@ client.on('messageCreate', async (message) => {
                 break;
             case 'bilmece':
                 await games.startRiddle(message);
+                break;
+
+            // === RADYO ===
+            case 'radyo':
+            case 'radio':
+                await handleRadio(message, args);
+                break;
+
+            // === SES & SOUNDBOARD ===
+            case 's':
+            case 'ses':
+                await handleSoundboard(message, args);
                 break;
 
             // === EĞLENCE & AI ===
@@ -259,6 +270,38 @@ async function handleHelp(message) {
                 inline: false
             },
             {
+                name: `🎤 __SOUNDBOARD (YENİ!)__`,
+                value: '```yaml\n' +
+                    '!s gora        : Bir Cisim Yaklaşıyor\n' +
+                    '!s naber       : Aykut Elmas Naber\n' +
+                    '!s recep       : Recep İvedik Böhöhöyt\n' +
+                    '!s cay         : Çaylarrrrrr\n' +
+                    '!s bruh        : Bruh Moment\n' +
+                    '!s sad         : Sad Violin\n' +
+                    '!s de <mesaj>  : Bot Türkçe konuşur\n' +
+                    '!s <herhangi>  : "var dediler" gibi ara bulur!\n' +
+                    '!s list        : Hepsini sırala\n' +
+                    '```',
+                inline: false
+            },
+            {
+                name: `📻 __RADYO MODU (Sonsuz)__`,
+                value: '```yaml\n' +
+                    '!radyo arabesk : Damar & Baba Şarkılar\n' +
+                    '!radyo ask     : Slow Aşk & Duygusal\n' +
+                    '!radyo huzun   : Dertli & Hüzünlü\n' +
+                    '!radyo pop     : Türkçe Pop Hit\n' +
+                    '!radyo rock    : Türkçe Rock\n' +
+                    '!radyo rap     : Türkçe Rap & Hip-Hop\n' +
+                    '!radyo akustik : Sakin & Cover\n' +
+                    '!radyo nostalji: 70-80-90lar Plak\n' +
+                    '!radyo yabanci : Global Hit Songs\n' +
+                    '!radyo party   : Hareketli & Kopmalık\n' +
+                    '!radyo karisik : Ortaya Karışık Her Şey\n' +
+                    '```',
+                inline: false
+            },
+            {
                 name: `🎮 __OYUNLAR__`,
                 value: '```yaml\n' +
                     '!rulet @kurban : Rus Ruleti (Kaybeden atılır!)\n' +
@@ -309,6 +352,87 @@ async function handleHelp(message) {
         .setTimestamp();
 
     await message.reply({ embeds: [embed] });
+}
+
+// === RADYO HANDLER ===
+const radioSongs = require('./utils/radio_songs');
+
+async function handleRadio(message, args) {
+    const voiceChannel = message.member.voice.channel;
+    if (!voiceChannel) {
+        return message.reply(`❌ **Hata:** Önce bir ses kanalına katılmalısın!`);
+    }
+
+    let category = args[0] ? args[0].toLowerCase() : null;
+    const availableStations = Object.keys(radioSongs);
+
+    // Kategori kontrolü
+    if (!category || (!availableStations.includes(category) && category !== 'karisik' && category !== 'mix')) {
+        const embed = new EmbedBuilder()
+            .setColor(config.colors.info)
+            .setTitle('📻 Zoare Radyo İstasyonları')
+            .setDescription('**Arşiv Modu Aktif:** Bot kendi dev arşivinden rastgele şarkılar çalar!\n\n' +
+                availableStations.map(c => `• \`!radyo ${c}\``).join('\n') +
+                '\n• `!radyo karisik` (Tüm arşivden rastgele)')
+            .setFooter({ text: 'Sonsuz döngü! Durdurana kadar çalmaya devam eder.' });
+        return message.reply({ embeds: [embed] });
+    }
+
+    try {
+        let selectedSongName;
+        let displayCategory;
+        let targetList = [];
+
+        // Karışık mod veya normal mod
+        if (category === 'karisik' || category === 'mix') {
+            displayCategory = 'KARIŞIK (Tüm Arşiv)';
+            // Tüm şarkıları tek bir havuzda topla
+            Object.values(radioSongs).forEach(list => targetList.push(...list));
+            category = 'karisik'; // Queue için işaretle
+        } else {
+            displayCategory = category.toUpperCase();
+            targetList = radioSongs[category];
+        }
+
+        // İlk şarkıyı seç
+        selectedSongName = targetList[Math.floor(Math.random() * targetList.length)];
+
+        await message.reply(`📻 **${displayCategory} Radyosu** frekansına bağlanılıyor...\n🎶 *İlk parça:* \`${selectedSongName}\``);
+
+        // Şarkı bilgisini al
+        const songInfo = await player.getSongInfo(selectedSongName);
+        songInfo.requestedBy = {
+            id: 'radio',
+            username: 'Zoare Radyo',
+            displayAvatarURL: () => 'https://cdn-icons-png.flaticon.com/512/3083/3083417.png'
+        };
+
+        // Kuyruğu al ve ayarla
+        const queue = player.getQueue(message.guild.id);
+        queue.textChannel = message.channel;
+        queue.voiceChannel = voiceChannel;
+        queue.radioCategory = category; // Radyo modunu aktif et (player.js bunu kontrol edecek)
+        queue.loop = false; // Loop kapalı olmalı ki şarkı bitince next'e geçsin ve biz yenisini ekleyelim
+
+        // Eğer başka bir şey çalıyorsa kuyruğu temizle (Radyo önceliklidir)
+        if (queue.playing) {
+            queue.songs = []; // Kuyruğu sil
+            queue.player.stop(); // Mevcut şarkıyı durdur (Idle tetiklenir, radyo başlar)
+        }
+
+        // Şarkıyı kuyruğa ekle ve başlat
+        queue.songs.push(songInfo);
+
+        queue.connection = await player.connectToChannel(voiceChannel);
+        queue.player = player.createPlayer();
+        queue.connection.subscribe(queue.player);
+        player.setupPlayerEvents(message.guild.id);
+        await player.playSong(message.guild.id, queue.songs.shift());
+
+    } catch (error) {
+        console.error('Radyo hatası:', error);
+        message.reply(`❌ Radyo frekansı yakalanamadı: ${error.message}`);
+    }
 }
 
 async function handleMix(message, args) {
@@ -831,42 +955,49 @@ async function handleNSFW(message, args) {
         return message.reply({ embeds: [embed] });
     }
 
-    const requestedCategory = args[0] ? args[0].toLowerCase() : null;
+    // Full sorguyu al (artık tek kelime değil)
+    const requestQuery = args.join(' ');
 
-    // Kategori listesi
-    if (!requestedCategory || requestedCategory === 'list' || requestedCategory === 'help') {
+    // Kategori listesi (Sadece 'list' veya 'help' yazarsa)
+    if (!requestQuery || requestQuery === 'list' || requestQuery === 'help') {
         const embed = new EmbedBuilder()
             .setColor('#ff0066') // Özel sexy renk
             .setTitle('🔥 NSFW Komutları')
-            .setDescription('İstediğin kategoriyi seç yavrum:')
+            .setDescription('İstediğin şeyi özgürce yazabilirsin! (Türkçe/İngilizce)')
             .addFields(
-                { name: '🍑 Vücut', value: '`ass`, `boobs`, `thighs`, `feet`, `pussy`, `anal`', inline: true },
-                { name: '🔞 Özel', value: '`blowjob`, `couple`, `gif` (Hepsi GIF)', inline: true },
-                { name: '🎲 Karışık', value: '`random` (Sürpriz)', inline: true }
+                { name: '🔍 Akıllı Arama', value: '`!nsfw lesbian kiss`, `!nsfw anal sex`, `!nsfw büyük popo`', inline: false },
+                { name: '🎲 Karışık', value: '`!nsfw` (Sürpriz Karışık)', inline: false }
             )
-            .setFooter({ text: 'Kullanım: !nsfw <kategori> | GIF önceliklidir!' });
+            .setFooter({ text: 'Not: Eğer tam aradığını bulamazsam sana en yakın güzel şeyi getiririm! 😉' });
         return message.reply({ embeds: [embed] });
     }
 
     // Yükleniyor...
-    const loadingMsg = await message.reply('🔍 **Arıyorum tatlım...**');
+    const loadingMsg = await message.reply(`🔍 **"${requestQuery}" aranıyor tatlım...**`);
 
     try {
-        const image = await nsfw.getNSFWImage(requestedCategory);
+        // Full sorguyu gönder
+        const image = await nsfw.getNSFWImage(requestQuery);
 
         if (!image) {
-            await loadingMsg.edit('❌ **Üzgünüm, bu kategoride bir şey bulamadım veya Reddit hata verdi.**');
+            await loadingMsg.edit('❌ **Üzgünüm, bu konuda hiçbir şey bulamadım!**');
             return;
         }
 
         const embed = new EmbedBuilder()
             .setColor('#ff0066')
-            .setTitle(image.title || '🔥 Hot Image')
+            .setTitle(image.title)
             .setURL(image.postLink)
             .setImage(image.url)
-            .setFooter({ text: `Kategori: ${requestedCategory} • yazar: ${image.author}` });
+            .setFooter({ text: `Resource: ${image.author}` });
 
-        await loadingMsg.edit({ content: null, embeds: [embed] });
+        // Eğer bir durum mesajı varsa (Random fallback vs)
+        let contentStr = null;
+        if (image.statusBox) {
+            contentStr = image.statusBox;
+        }
+
+        await loadingMsg.edit({ content: contentStr, embeds: [embed] });
 
     } catch (error) {
         console.error('NSFW Error:', error);
@@ -891,6 +1022,114 @@ async function handleMovie(message, args) {
     } catch (error) {
         console.error('Film AI Hatası:', error);
         await msg.edit('❌ **Film önerisi alırken bir hata oluştu!**');
+    }
+}
+
+const soundLib = require('./utils/sounds');
+
+async function handleSoundboard(message, args) {
+    const voiceChannel = message.member.voice.channel;
+    if (!voiceChannel) {
+        return message.reply(`❌ **Ses kanalına girmen lazım baba!**`);
+    }
+
+    const command = args[0] ? args[0].toLowerCase() : null;
+
+    // YARDIM MENÜSÜ
+    if (!command || command === 'list' || command === 'help') {
+        const soundList = Object.keys(soundLib.sounds).map(key => `\`${key}\`: ${soundLib.sounds[key].name}`).join('\n');
+
+        const embed = new EmbedBuilder()
+            .setColor('#00ff00') // Neon Yeşil
+            .setTitle('🎤 Soundboard & Ses Efektleri')
+            .setDescription('Anlık tepki vermek için kullan!\n\n**🗣️ Botu Konuştur:**\n`!s de Naber müdür` -> Bot "Naber müdür" der.\n\n**🔊 Hazır Sesler:**\n' + soundList)
+            .setFooter({ text: 'Kullanım: !s <efekt> veya !s de <mesaj>' });
+        return message.reply({ embeds: [embed] });
+    }
+
+    let audioUrl = null;
+    let title = '';
+
+    // TTS KONTROLÜ
+    if (command === 'de' || command === 'say' || command === 'soyle') {
+        const textToSay = args.slice(1).join(' ');
+        if (!textToSay) return message.reply('❌ **Ne söyleyeyim baba?** `!s de Selam` gibi yaz.');
+
+        audioUrl = soundLib.getTTSUrl(textToSay, 'tr');
+        title = `🗣️ Söyleniyor: "${textToSay}"`;
+    }
+    // HAZIR SES KONTROLÜ
+    else if (soundLib.sounds[command]) {
+        audioUrl = soundLib.sounds[command].url;
+        title = `🔊 Çalınıyor: ${soundLib.sounds[command].name}`;
+    }
+    // DİNAMİK ARAMA (Listede yoksa ara bul)
+    else {
+        // Komutun kendisi bir arama terimidir (örn: !s var dediler)
+        const searchQuery = args.join(' ');
+
+        // Kullanıcıya bilgi ver
+        const searchMsg = await message.reply(`🔎 **"${searchQuery}" için kısa ses aranıyor...**`);
+
+        try {
+            const result = await soundLib.findDynamicSound(searchQuery);
+
+            if (result && result.url) {
+                audioUrl = result.url;
+                title = `🔊 Bulundu: ${result.title}`;
+                await searchMsg.delete().catch(() => { });
+            } else {
+                await searchMsg.edit('❌ **Kısa (12sn altı) bir ses bulunamadı!** Daha spesifik yazmayı dene.');
+                return;
+            }
+        } catch (err) {
+            console.error('Arama hatası:', err);
+            await searchMsg.edit('❌ **Arama sırasında hata oluştu!**');
+            return;
+        }
+    }
+
+    try {
+        // Player işlemleri
+        const queue = player.getQueue(message.guild.id);
+
+        // Eğer zaten bağlı değilse bağlan
+        if (!queue.connection) {
+            queue.textChannel = message.channel;
+            queue.voiceChannel = voiceChannel;
+            queue.connection = await player.connectToChannel(voiceChannel);
+            queue.player = player.createPlayer();
+            queue.connection.subscribe(queue.player);
+            player.setupPlayerEvents(message.guild.id);
+        }
+
+        // Soundboard önceliklidir!
+        const soundEffect = {
+            title: title,
+            url: audioUrl,
+            duration: 'Efekt',
+            thumbnail: 'https://cdn-icons-png.flaticon.com/512/3204/3204961.png',
+            author: 'Soundboard',
+            requestedBy: message.author,
+            isSoundboard: true
+        };
+
+        // Şarkı listesinin BAŞINA ekle
+        queue.songs.unshift(soundEffect);
+
+        // Mevcut çalanı durdur (Idle olunca sıradaki çalacak)
+        if (queue.playing) {
+            queue.player.stop();
+        } else {
+            // Çalmıyorsa direkt başlat
+            await player.playSong(message.guild.id, queue.songs.shift());
+        }
+
+        message.react('✅');
+
+    } catch (error) {
+        console.error('Soundboard hatası:', error);
+        message.reply('❌ Ses çalınamadı!');
     }
 }
 
