@@ -143,14 +143,12 @@ async function getLyrics(artist, title) {
     const cleanTitle = title.replace(/\(Official.*?\)/gi, '').trim();
 
     try {
-        const prompt = `GÖREV: Aşağıdaki şarkının sözlerini getir.
+        const prompt = `Google Search Tool kullanarak şu şarkının sözlerini bul ve getir: "${cleanArtist} - ${cleanTitle}"
         
-Şarkı: ${cleanArtist} - ${cleanTitle}
-
-KURALLAR:
-1. Sadece şarkı sözlerini yaz.
-2. Başlık, yorum, giriş-gelişme gibi eklemeler yapma.
-3. Eğer şarkıyı kesinlikle bilmiyorsan sadece tek kelime "BULUNAMADI" yaz.`;
+GÖREV: Bulduğun şarkı sözlerini eksiksiz aşağıya yaz.
+- Link verme, direkt sözleri yaz.
+- Kısa kesme, tamamını yaz.
+- Başlık ekleme, sadece sözler.`;
 
         const response = await queueRequest(prompt);
         const text = response.text();
