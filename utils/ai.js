@@ -3,7 +3,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 // AI client
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     tools: [{ googleSearch: {} }]
 });
 
@@ -153,9 +153,13 @@ GÖREV: Bulduğun şarkı sözlerini eksiksiz aşağıya yaz.
         const response = await queueRequest(prompt);
         const text = response.text();
 
-        if (text.length < 20 || text.includes('BULUNAMADI')) return null;
+        if (text.length < 20 || text.includes('BULUNAMADI')) {
+            console.log('[DEBUG] Text too short or has BULUNAMADI:', text);
+            return null;
+        }
         return text;
     } catch (error) {
+        console.error('[DEBUG] getLyrics Exception:', error);
         return null;
     }
 }
