@@ -143,9 +143,14 @@ async function getLyrics(artist, title) {
     const cleanTitle = title.replace(/\(Official.*?\)/gi, '').trim();
 
     try {
-        const prompt = `Google'da ARA: "${artist} - ${title} lyrics" veya "şarkı sözleri"
-GÖREV: Şarkı sözlerini eksiksiz yaz.
-KURALLAR: Sadece sözleri yaz, yorum yok. Bulamazsan "BULUNAMADI" yaz.`;
+        const prompt = `GÖREV: Aşağıdaki şarkının sözlerini getir.
+        
+Şarkı: ${cleanArtist} - ${cleanTitle}
+
+KURALLAR:
+1. Sadece şarkı sözlerini yaz.
+2. Başlık, yorum, giriş-gelişme gibi eklemeler yapma.
+3. Eğer şarkıyı kesinlikle bilmiyorsan sadece tek kelime "BULUNAMADI" yaz.`;
 
         const response = await queueRequest(prompt);
         const text = response.text();
