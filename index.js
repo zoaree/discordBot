@@ -918,7 +918,7 @@ async function handleLyrics(message) {
                 .setTitle(song.title)
                 .setDescription(lyricsText)
                 .setThumbnail(song.thumbnail)
-                .setFooter({ text: `${song.author} • Gemini 2.5 Flash tarafından getirildi` })
+                .setFooter({ text: `${song.author} • @zoare5 tarafından geliştirildi` })
                 .setTimestamp();
 
             await loadingMsg.edit({ embeds: [embed] });
