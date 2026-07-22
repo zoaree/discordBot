@@ -67,8 +67,9 @@ async function getSongInfo(query) {
             '--quiet',
             '--force-ipv4',
             '--ignore-config',
-            '--extractor-args', 'youtube:player_client=tv,web_embedded;player_skip=webpage',
-            '--js-runtimes', '/usr/local/bin/deno'
+            '--extractor-args', 'youtube:player_client=web,android;player_skip=webpage',
+            '--js-runtimes', 'deno',
+            '--remote-components', 'ejs:github'
         ], { 
             timeout: 120000,
             env: {
@@ -205,8 +206,9 @@ async function playSong(guildId, song) {
             '--socket-timeout', '60',
             '--force-ipv4',
             '--ignore-config',
-            '--extractor-args', 'youtube:player_client=tv,web_embedded;player_skip=webpage',
-            '--js-runtimes', '/usr/local/bin/deno',
+            '--extractor-args', 'youtube:player_client=web,android;player_skip=webpage',
+            '--js-runtimes', 'deno',
+            '--remote-components', 'ejs:github',
             song.url
         ], {
             timeout: 120000,
