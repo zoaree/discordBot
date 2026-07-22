@@ -55,13 +55,20 @@ async function getSongInfo(query) {
         const isUrl = query.startsWith('http://') || query.startsWith('https://');
         const searchQuery = isUrl ? query : `ytsearch:${query}`;
 
+        console.log(`[YT-DLP] Searching for: ${searchQuery}`);
+
         const ytdlp = spawn('yt-dlp', [
             searchQuery,
             '--dump-json',
             '--no-playlist',
             '--default-search', 'ytsearch',
-            '-f', 'bestaudio'
-        ]);
+            '-f', 'bestaudio',
+            '--no-check-certificate',
+            '--socket-timeout', '30',
+            '--quiet',
+            '--no-warnings',
+            '--force-ipv4'
+        ], { timeout: 60000 }); // 60 saniye timeout
 
         let stdout = '';
         let stderr = '';
@@ -72,6 +79,7 @@ async function getSongInfo(query) {
 
         ytdlp.stderr.on('data', (data) => {
             stderr += data.toString();
+            console.log(`[YT-DLP] stderr: ${data.toString()}`);
         });
 
         ytdlp.on('close', (code) => {
@@ -123,7 +131,7 @@ async function connectToChannel(voiceChannel) {
     });
 
     try {
-        await entersState(connection, VoiceConnectionStatus.Ready, 30_000);
+        await entersState(connection, VoiceConnectionStatus.Ready, 120_000); // 2 dakika timeout
         return connection;
     } catch (error) {
         connection.destroy();
@@ -172,6 +180,7 @@ async function playSong(guildId, song) {
             '-f', 'bestaudio',
             '--no-playlist',
             '-q',
+            '--no-check-certificate',
             song.url
         ]);
 
