@@ -141,14 +141,20 @@ async function connectToChannel(voiceChannel) {
         channelId: voiceChannel.id,
         guildId: voiceChannel.guild.id,
         adapterCreator: voiceChannel.guild.voiceAdapterCreator,
-        selfDeaf: true
+        selfDeaf: true,
+        selfMute: false
     });
 
     try {
-        await entersState(connection, VoiceConnectionStatus.Ready, 120_000); // 2 dakika timeout
+        console.log('[Voice] Bağlanılıyor: Ses kanalı ID:', voiceChannel.id, 'Guild:', voiceChannel.guild.id);
+        await entersState(connection, VoiceConnectionStatus.Ready, 300_000); // 5 dakika (daha uzun)
+        console.log('[Voice] Bağlantı başarılı!');
         return connection;
     } catch (error) {
-        connection.destroy();
+        console.error('[Voice] Bağlantı hatası:', error);
+        try {
+            connection.destroy();
+        } catch (e) {}
         throw error;
     }
 }
