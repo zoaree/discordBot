@@ -29,10 +29,9 @@ function getQueue(guildId) {
             voiceChannel: null,
             playing: false,
             volume: 100,
-            playing: false,
-            volume: 100,
             loop: false,
-            idleTimer: null
+            idleTimer: null,
+            radioCategory: null
         });
     }
     return queues.get(guildId);
@@ -196,8 +195,17 @@ async function playSong(guildId, song) {
             '--no-playlist',
             '-q',
             '--no-check-certificate',
+            '--socket-timeout', '60',
+            '--force-ipv4',
+            '--ignore-config',
             song.url
-        ]);
+        ], {
+            timeout: 120000,
+            env: {
+                ...process.env,
+                NODE_OPTIONS: '--no-warnings'
+            }
+        });
 
         const ffmpeg = spawn('ffmpeg', [
             '-i', 'pipe:0',
