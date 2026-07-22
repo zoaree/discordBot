@@ -21,7 +21,7 @@
     "@distube/youtube": "^1.0.4",
     "@distube/yt-dlp": "^2.0.1",
     "@google/generative-ai": "^0.24.1",
-    "@snazzah/davey": "^0.1.9",
+    "@snazzah/davey": "^0.1.12",
     "discord.js": "^14.14.1",
     "distube": "^5.2.3",
     "dotenv": "^16.3.1",
