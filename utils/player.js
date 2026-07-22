@@ -73,14 +73,14 @@ async function getSongInfo(query) {
             '--dump-json',
             '--no-playlist',
             '--default-search', 'ytsearch',
-            '-f', 'bestaudio/best',
             '--no-check-certificate',
             '--socket-timeout', '60',
             '--quiet',
+            '--no-part',
             '--force-ipv4',
             '--ignore-config',
-            '--extractor-args', 'youtube:player_client=web,android;player_skip=webpage',
-            '--js-runtimes', 'deno',
+            '--extractor-args', 'youtube:player_client=web,android',
+            '--js-runtimes', 'node',
             '--remote-components', 'ejs:github'
         ], { 
             timeout: 120000,
@@ -225,19 +225,18 @@ async function playSong(guildId, song) {
         // yt-dlp ile ses stream'i al ve ffmpeg'e pipe et
         const ytdlp = spawn('yt-dlp', [
             '-o', '-',
-            '-f', 'bestaudio/best',
             '--no-playlist',
             '-q',
+            '--no-part',
             '--no-check-certificate',
             '--socket-timeout', '60',
             '--force-ipv4',
             '--ignore-config',
-            '--extractor-args', 'youtube:player_client=web,android;player_skip=webpage',
-            '--js-runtimes', 'deno',
+            '--extractor-args', 'youtube:player_client=web,android',
+            '--js-runtimes', 'node',
             '--remote-components', 'ejs:github',
             song.url
         ], {
-            timeout: 120000,
             env: {
                 ...process.env,
                 PATH: `${process.env.PATH}:/home/kadiroski/.deno/bin`,
@@ -246,9 +245,11 @@ async function playSong(guildId, song) {
         });
 
         const ffmpeg = spawn('ffmpeg', [
+
             '-i', 'pipe:0',
-            '-analyzeduration', '0',
-            '-loglevel', '0',
+            '-probesize', '100M',
+            '-analyzeduration', '100M',
+            '-loglevel', 'error',
             '-f', 's16le',
             '-ar', '48000',
             '-ac', '2',
@@ -304,9 +305,25 @@ async function playSong(guildId, song) {
             console.error('yt-dlp hatası:', err);
         });
 
+        ytdlp.on('close', (code) => {
+            console.log(`[YT-DLP Playback] Process closed with code: ${code}`);
+            if (code !== 0 && queue.playing && queue.currentSong === song) {
+                console.warn('[YT-DLP Playback] Process closed unexpectedly, trying to continue...');
+            }
+        });
+
         ffmpeg.on('error', (err) => {
             console.error('ffmpeg hatası:', err);
         });
+
+        ffmpeg.on('close', (code) => {
+            console.log(`[FFMPEG Playback] Process closed with code: ${code}`);
+            if (code !== 0 && queue.playing && queue.currentSong === song) {
+                console.warn('[FFMPEG Playback] Process closed unexpectedly, trying to continue...');
+            }
+        });
+
+
 
         // Stream hatalarını sessizce yakala (write EPIPE gibi)
         ytdlp.stdout.on('error', () => {});
