@@ -64,11 +64,19 @@ async function getSongInfo(query) {
             '--default-search', 'ytsearch',
             '-f', 'bestaudio',
             '--no-check-certificate',
-            '--socket-timeout', '30',
+            '--socket-timeout', '60',
             '--quiet',
             '--no-warnings',
-            '--force-ipv4'
-        ], { timeout: 60000 }); // 60 saniye timeout
+            '--force-ipv4',
+            '--ignore-config'
+        ], { 
+            timeout: 120000,
+            env: {
+                ...process.env,
+                // Disable crashpad warnings
+                NODE_OPTIONS: '--no-warnings'
+            }
+        }); // 120 saniye timeout
 
         let stdout = '';
         let stderr = '';
@@ -79,10 +87,14 @@ async function getSongInfo(query) {
 
         ytdlp.stderr.on('data', (data) => {
             stderr += data.toString();
-            console.log(`[YT-DLP] stderr: ${data.toString()}`);
+            // Only log actual errors, not warnings
+            if (data.toString().toLowerCase().includes('error')) {
+                console.log(`[YT-DLP] stderr: ${data.toString()}`);
+            }
         });
 
         ytdlp.on('close', (code) => {
+            console.log(`[YT-DLP] Process closed with code ${code}`);
             if (code !== 0 || !stdout.trim()) {
                 console.error('yt-dlp stderr:', stderr);
                 return reject(new Error('Şarkı bulunamadı'));
@@ -90,6 +102,7 @@ async function getSongInfo(query) {
 
             try {
                 const info = JSON.parse(stdout.trim().split('\n')[0]);
+                console.log(`[YT-DLP] Found song: ${info.title}`);
                 resolve({
                     title: info.title || 'Bilinmeyen Şarkı',
                     url: info.webpage_url || info.url,
@@ -100,11 +113,13 @@ async function getSongInfo(query) {
                 });
             } catch (e) {
                 console.error('JSON parse hatası:', e);
+                console.error('stdout:', stdout);
                 reject(new Error('Şarkı bilgisi alınamadı'));
             }
         });
 
         ytdlp.on('error', (err) => {
+            console.error('yt-dlp error:', err);
             reject(err);
         });
     });
