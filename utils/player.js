@@ -31,7 +31,9 @@ function getQueue(guildId) {
             volume: 100,
             loop: false,
             idleTimer: null,
-            radioCategory: null
+            radioCategory: null,
+            currentYtdlp: null,
+            currentFfmpeg: null
         });
     }
     return queues.get(guildId);
@@ -42,6 +44,16 @@ function deleteQueue(guildId) {
     if (queue) {
         if (queue.player) queue.player.stop();
         if (queue.connection) queue.connection.destroy();
+        if (queue.currentYtdlp) {
+            try {
+                queue.currentYtdlp.kill('SIGKILL');
+            } catch (e) {}
+        }
+        if (queue.currentFfmpeg) {
+            try {
+                queue.currentFfmpeg.kill('SIGKILL');
+            } catch (e) {}
+        }
     }
     queues.delete(guildId);
 }
@@ -178,6 +190,20 @@ function createPlayer() {
 async function playSong(guildId, song) {
     const queue = getQueue(guildId);
 
+    // Önceki süreçleri temizle
+    if (queue.currentYtdlp) {
+        try {
+            queue.currentYtdlp.kill('SIGKILL');
+        } catch (e) {}
+        queue.currentYtdlp = null;
+    }
+    if (queue.currentFfmpeg) {
+        try {
+            queue.currentFfmpeg.kill('SIGKILL');
+        } catch (e) {}
+        queue.currentFfmpeg = null;
+    }
+
     if (!song) {
         if (queue.textChannel) {
             const embed = new EmbedBuilder()
@@ -251,6 +277,8 @@ async function playSong(guildId, song) {
         queue.player.play(resource);
         queue.currentSong = song;
         queue.playing = true;
+        queue.currentYtdlp = ytdlp;
+        queue.currentFfmpeg = ffmpeg;
 
         // Şarkı bilgisini gönder (Soundboard ise gönderme)
         if (!song.isSoundboard && queue.textChannel) {
@@ -279,6 +307,11 @@ async function playSong(guildId, song) {
         ffmpeg.on('error', (err) => {
             console.error('ffmpeg hatası:', err);
         });
+
+        // Stream hatalarını sessizce yakala (write EPIPE gibi)
+        ytdlp.stdout.on('error', () => {});
+        ffmpeg.stdin.on('error', () => {});
+        ffmpeg.stdout.on('error', () => {});
 
     } catch (error) {
         console.error('Şarkı çalma hatası:', error);
