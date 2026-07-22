@@ -61,21 +61,22 @@ async function getSongInfo(query) {
             '--dump-json',
             '--no-playlist',
             '--default-search', 'ytsearch',
-            '-f', 'bestaudio',
+            '-f', 'bestaudio/best',
             '--no-check-certificate',
             '--socket-timeout', '60',
             '--quiet',
-            '--no-warnings',
             '--force-ipv4',
-            '--ignore-config'
+            '--ignore-config',
+            '--extractor-args', 'youtube:player_client=tv,web_embedded;player_skip=webpage',
+            '--js-runtimes', '/usr/local/bin/deno'
         ], { 
             timeout: 120000,
             env: {
                 ...process.env,
-                // Disable crashpad warnings
+                PATH: `${process.env.PATH}:/home/kadiroski/.deno/bin`,
                 NODE_OPTIONS: '--no-warnings'
             }
-        }); // 120 saniye timeout
+        });
 
         let stdout = '';
         let stderr = '';
@@ -197,18 +198,21 @@ async function playSong(guildId, song) {
         // yt-dlp ile ses stream'i al ve ffmpeg'e pipe et
         const ytdlp = spawn('yt-dlp', [
             '-o', '-',
-            '-f', 'bestaudio',
+            '-f', 'bestaudio/best',
             '--no-playlist',
             '-q',
             '--no-check-certificate',
             '--socket-timeout', '60',
             '--force-ipv4',
             '--ignore-config',
+            '--extractor-args', 'youtube:player_client=tv,web_embedded;player_skip=webpage',
+            '--js-runtimes', '/usr/local/bin/deno',
             song.url
         ], {
             timeout: 120000,
             env: {
                 ...process.env,
+                PATH: `${process.env.PATH}:/home/kadiroski/.deno/bin`,
                 NODE_OPTIONS: '--no-warnings'
             }
         });
@@ -226,11 +230,11 @@ async function playSong(guildId, song) {
         ytdlp.stdout.pipe(ffmpeg.stdin);
 
         ytdlp.stderr.on('data', (data) => {
-            // Sessiz geç
+            console.log(`[YT-DLP Playback] stderr: ${data.toString()}`);
         });
 
         ffmpeg.stderr.on('data', (data) => {
-            // Sessiz geç  
+            console.log(`[FFMPEG] stderr: ${data.toString()}`);
         });
 
         const resource = createAudioResource(ffmpeg.stdout, {
